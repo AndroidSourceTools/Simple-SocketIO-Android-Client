@@ -14,8 +14,10 @@ public class RoomInfo {
     private int mUnReadCount;
     @SerializedName("user_info_list")
     private ArrayList<UserInfo> mUserInfoList;
-    @SerializedName("last_message_info")
-    private MessageInfo mLastMessageInfo;
+    @SerializedName("last_message")
+    private String mLastMessage;
+    @SerializedName("last_message_timestamp")
+    private long mLastMessageTimestamp;
 
     public String getRoomId() {
         return mRoomId;
@@ -39,5 +41,29 @@ public class RoomInfo {
 
     public void setRoomType(int mRoomType) {
         this.mRoomType = mRoomType;
+    }
+
+    public String getLastMessage() {
+        return mLastMessage;
+    }
+
+    public void setLastMessage(String mLastMessage) {
+        this.mLastMessage = mLastMessage;
+    }
+
+    public long getLastMessageTimestamp() {
+        return mLastMessageTimestamp;
+    }
+
+    public void setLastMessageTimestamp(long mLastMessageTime) {
+        this.mLastMessageTimestamp = mLastMessageTime;
+    }
+
+    public int getUnReadCount() {
+        return mUnReadCount;
+    }
+
+    public void setUnReadCount(int mUnReadCount) {
+        this.mUnReadCount = mUnReadCount;
     }
 }
