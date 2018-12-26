@@ -5,17 +5,23 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.socketio.test.model.MessageInfo;
 import com.socketio.test.model.MessageReceiveEvent;
+import com.socketio.test.model.RoomInfo;
 import com.socketio.test.model.UserInfo;
 
 import org.greenrobot.eventbus.EventBus;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.net.URISyntaxException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -135,15 +141,39 @@ public class SocketIOManager {
                 return;
             }
 
-            String roomID = args[0].toString();
-            if (TextUtils.isEmpty(roomID)) {
+            JSONObject jsonObj = (JSONObject) args[0];
+            RoomInfo roomInfo = new RoomInfo();
+            ArrayList<UserInfo> userInfoList = new ArrayList<>();
+
+            roomInfo.setRoomId(jsonObj.optString("room_id"));
+            roomInfo.setRoomType(jsonObj.optInt("room_type"));
+            roomInfo.setLastMessage(jsonObj.optString("last_message"));
+            roomInfo.setUnReadCount(jsonObj.optInt("unread_count"));
+            roomInfo.setLastMessageTimestamp(jsonObj.optLong("last_message_timestamp"));
+            JSONArray userInfoJsonAry = jsonObj.optJSONArray("user_info_list");
+            for (int i = 0, len = userInfoJsonAry.length(); i < len; i++) {
+                try {
+                    String element = userInfoJsonAry.getString(i);
+                    JSONObject userInfoJsonObj = new JSONObject(element);
+                    UserInfo userInfo = new UserInfo();
+
+                    userInfo.setUserId(userInfoJsonObj.optString("user_id"));
+                    userInfo.setUserName(userInfoJsonObj.optString("user_name"));
+                    userInfoList.add(userInfo);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+            roomInfo.setUserInfoList(userInfoList);
+
+            if (roomInfo == null || TextUtils.isEmpty(roomInfo.getRoomId())) {
                 return;
             }
 
             MessageInfo msgInfo = new MessageInfo();
             msgInfo.setMessageType(-1);
             msgInfo.setEventResponseType(1);
-            msgInfo.setMessage(roomID);
+            msgInfo.setMessage(roomInfo.getRoomId());
             MessageReceiveEvent<MessageInfo> msgRecvEvent = new MessageReceiveEvent<>(msgInfo);
             EventBus.getDefault().post(msgRecvEvent);
         }).on("join-room-success", (Object... args) -> {
@@ -180,12 +210,14 @@ public class SocketIOManager {
         return args != null && args.length > 0;
     }
 
-    public void createRoom() {
+    public void createRoom(int roomType, UserInfo userInfo) {
         if (!isConnected()) {
             return;
         }
+        JsonArray jsonAry = new JsonArray();
 
-        mSocket.emit("create-room", "");
+        jsonAry.add(mGon.toJson(userInfo));
+        mSocket.emit("create-room", roomType, jsonAry);
     }
 
     public void joinRoom(String roomId, UserInfo userInfo) {

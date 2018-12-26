@@ -17,6 +17,7 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.reflect.TypeToken;
 import com.socketio.test.adapter.MessageListAdapter;
 import com.socketio.test.model.MessageInfo;
@@ -160,34 +161,28 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
                             return;
                         }
 
-                        List<UserInfo> newUserInfoList = mGson.fromJson(msgInfo.getMessage(), new TypeToken<List<UserInfo>>(){}.getType());
-                        List<UserInfo> oldUserInfoList = new ArrayList<>();
-
-                        oldUserInfoList.addAll(mRoomUserInfoMap.values());
-
-                        if(newUserInfoList.size() > oldUserInfoList.size()) {
-                            newUserInfoList.removeAll(oldUserInfoList);
-                        } else {
-                            oldUserInfoList.removeAll(newUserInfoList);
-                        }
+//                        List<UserInfo> newUserInfoList = mGson.fromJson(msgInfo.getMessage(), new TypeToken<List<UserInfo>>(){}.getType());
+//                        List<UserInfo> oldUserInfoList = new ArrayList<>();
+//
+//                        oldUserInfoList.addAll(mRoomUserInfoMap.values());
+//
+//                        if(newUserInfoList.size() > oldUserInfoList.size()) {
+//                            newUserInfoList.removeAll(oldUserInfoList);
+//                        } else {
+//                            oldUserInfoList.removeAll(newUserInfoList);
+//                        }
 
                         switch (eventResponseType) {
                             case 2: {
-                                for(UserInfo userInfo : newUserInfoList) {
-                                    msgInfo = msgInfo.clone();
+                                UserInfo userInfo = mGson.fromJson(msgInfo.getMessage(), UserInfo.class);
 
-                                    msgInfo.setMessage(userInfo.getUserName() + "加入聊天室");
-                                    mRoomUserInfoMap.put(userInfo.getUserId(), userInfo);
-                                }
+                                msgInfo.setMessage(userInfo.getUserName() + "加入聊天室");
                             }
                             break;
                             case 3: {
-                                for(UserInfo userInfo : oldUserInfoList) {
-                                    msgInfo = msgInfo.clone();
+                                UserInfo userInfo = mGson.fromJson(msgInfo.getMessage(), UserInfo.class);
 
-                                    msgInfo.setMessage(userInfo.getUserName() + "離開聊天室");
-                                    mRoomUserInfoMap.remove(userInfo.getUserId());
-                                }
+                                msgInfo.setMessage(userInfo.getUserName() + "離開聊天室");
                             }
                             break;
                         }
@@ -216,7 +211,8 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
                 switch (eventResponseType) {
                     case 0: {
                         Log.d("randy", "Connected...");
-                        mSocketMgr.createRoom();
+
+                        mSocketMgr.createRoom(1, mUserInfo);
                     }
                     break;
                     case 1: {
