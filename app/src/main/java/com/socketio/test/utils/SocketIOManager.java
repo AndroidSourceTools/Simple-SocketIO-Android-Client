@@ -150,7 +150,15 @@ public class SocketIOManager {
             roomInfo.setLastMessage(jsonObj.optString("last_message"));
             roomInfo.setUnReadCount(jsonObj.optInt("unread_count"));
             roomInfo.setLastMessageTimestamp(jsonObj.optLong("last_message_timestamp"));
-            JSONArray userInfoJsonAry = jsonObj.optJSONArray("user_info_list");
+            JSONArray userInfoJsonAry = null;
+
+            try {
+                userInfoJsonAry = new JSONArray(jsonObj.optString("user_info_list"));
+            } catch (JSONException e) {
+                e.printStackTrace();
+                userInfoJsonAry = new JSONArray();
+            }
+
             for (int i = 0, len = userInfoJsonAry.length(); i < len; i++) {
                 try {
                     String element = userInfoJsonAry.getString(i);

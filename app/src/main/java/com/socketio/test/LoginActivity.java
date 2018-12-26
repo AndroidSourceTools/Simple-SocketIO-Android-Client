@@ -15,6 +15,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
+import static com.socketio.test.MainActivity.EXTRA_KEY_INVITED_USER_ID;
 import static com.socketio.test.MainActivity.EXTRA_KEY_USER_ID;
 import static com.socketio.test.MainActivity.EXTRA_KEY_USER_NAME;
 
@@ -34,6 +35,13 @@ public class LoginActivity extends AppCompatActivity {
 
     @OnClick(R.id.btn_login)
     public void onViewClicked() {
+        long curUserID = 1545807642;
+        long invitedUserID = 2;
+//        String curUserID = "2";
+//        String invitedUserID = "1";
+
+
+
         String userName = mEtUserName.getText().toString();
         if(TextUtils.isEmpty(userName)) {
             Toast.makeText(LoginActivity.this, "請輸入使用者名稱", Toast.LENGTH_LONG).show();
@@ -42,7 +50,8 @@ public class LoginActivity extends AppCompatActivity {
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
         intent.putExtra(EXTRA_KEY_USER_NAME, userName);
         // TODO: Need a real user id
-        intent.putExtra(EXTRA_KEY_USER_ID, System.currentTimeMillis());
+        intent.putExtra(EXTRA_KEY_USER_ID, curUserID);
+        intent.putExtra(EXTRA_KEY_INVITED_USER_ID, invitedUserID);
         startActivity(intent);
         finish();
     }

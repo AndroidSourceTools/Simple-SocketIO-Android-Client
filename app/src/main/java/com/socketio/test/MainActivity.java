@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
 
     public static final String EXTRA_KEY_USER_NAME = "extra_key_user_name";
     public static final String EXTRA_KEY_USER_ID = "extra_key_user_id";
+    public static final String EXTRA_KEY_INVITED_USER_ID = "extra_key_invited_user_id";
 
     @BindView(R.id.rv_msg_list)
     RecyclerView mRvMsgList;
