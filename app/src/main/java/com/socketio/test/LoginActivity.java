@@ -9,38 +9,35 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import java.util.Random;
+import org.androidannotations.annotations.Click;
+import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.ViewById;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
+import java.util.Random;
 
 import static com.socketio.test.MainActivity.EXTRA_KEY_INVITED_USER_ID;
 import static com.socketio.test.MainActivity.EXTRA_KEY_USER_ID;
 import static com.socketio.test.MainActivity.EXTRA_KEY_USER_NAME;
 
+@EActivity(R.layout.activity_login)
 public class LoginActivity extends AppCompatActivity {
 
-    @BindView(R.id.et_user_name)
+    @ViewById(R.id.et_user_name)
     EditText mEtUserName;
-    @BindView(R.id.btn_login)
+    @ViewById(R.id.btn_login)
     Button mBtnLogin;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
-        ButterKnife.bind(this);
     }
 
-    @OnClick(R.id.btn_login)
+    @Click(R.id.btn_login)
     public void onViewClicked() {
         long curUserID = 1545807642;
-        long invitedUserID = 2;
+        long invitedUserID =1545807641;
 //        String curUserID = "2";
 //        String invitedUserID = "1";
-
-
 
         String userName = mEtUserName.getText().toString();
         if(TextUtils.isEmpty(userName)) {

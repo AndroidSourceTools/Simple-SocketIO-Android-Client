@@ -25,30 +25,26 @@ import com.socketio.test.model.MessageReceiveEvent;
 import com.socketio.test.model.UserInfo;
 import com.socketio.test.utils.SocketIOManager;
 
+import org.androidannotations.annotations.Click;
+import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.ViewById;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-
+@EActivity(R.layout.activity_main)
 public class MainActivity extends AppCompatActivity implements MessageListAdapter.IListStatus {
 
     public static final String EXTRA_KEY_USER_NAME = "extra_key_user_name";
     public static final String EXTRA_KEY_USER_ID = "extra_key_user_id";
     public static final String EXTRA_KEY_INVITED_USER_ID = "extra_key_invited_user_id";
 
-    @BindView(R.id.rv_msg_list)
+    @ViewById(R.id.rv_msg_list)
     RecyclerView mRvMsgList;
-    @BindView(R.id.et_message_box)
+    @ViewById(R.id.et_message_box)
     EditText mEtMessageBox;
-    @BindView(R.id.btn_send_msg)
+    @ViewById(R.id.btn_send_msg)
     ImageButton mBtnSendMsg;
 
     private SocketIOManager mSocketMgr;
@@ -63,7 +59,6 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        ButterKnife.bind(this);
 
         init();
         initView();
@@ -114,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
         EventBus.getDefault().unregister(this);
     }
 
-    @OnClick(R.id.btn_send_msg)
+    @Click(R.id.btn_send_msg)
     public void onSendMessage(View view) {
 
         if (TextUtils.isEmpty(mUserInfo.getUserName())) {
