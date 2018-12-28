@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
         mUserInfo.setUserName(userName);
 
         // Init socket io commit
-        options.host("https://10.24.100.101:3000")
+        options.host("https://10.24.100.101:8081")
                 .isForceNew(true)
                 .reconnection(false)
                 .query("auth_token=" + userId);
