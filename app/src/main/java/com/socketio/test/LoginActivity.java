@@ -14,8 +14,6 @@ import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.ViewById;
 
-import java.util.Random;
-
 import static com.socketio.test.MainActivity.EXTRA_KEY_INVITED_USER_ID;
 import static com.socketio.test.MainActivity.EXTRA_KEY_USER_ID;
 import static com.socketio.test.MainActivity.EXTRA_KEY_USER_NAME;
@@ -27,7 +25,7 @@ public class LoginActivity extends AppCompatActivity {
     EditText mEtUserName;
     @ViewById(R.id.et_user_pwd)
     EditText mEtUserPwd;
-    @ViewById(R.id.btn_signin)
+    @ViewById(R.id.btn_signup)
     Button mBtnSignIn;
     @ViewById(R.id.btn_login)
     Button mBtnLogin;
@@ -37,13 +35,13 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
     }
 
-    @Click({R.id.btn_login, R.id.btn_signin})
+    @Click({R.id.btn_login, R.id.btn_signup})
     public void onViewClicked(View view) {
         int id = view.getId();
 
         String name = mEtUserName.getText().toString();
         String pwd = mEtUserPwd.getText().toString();
-        if (id == R.id.btn_signin) {
+        if (id == R.id.btn_signup) {
             if (TextUtils.isEmpty(name) || TextUtils.isEmpty(pwd)) {
                 Toast.makeText(LoginActivity.this, getString(R.string.toast_hint_no_valid_user_name_and_pwd), Toast.LENGTH_LONG).show();
                 return;
