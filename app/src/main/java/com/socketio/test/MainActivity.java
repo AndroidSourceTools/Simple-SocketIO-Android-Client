@@ -20,8 +20,11 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.reflect.TypeToken;
 import com.socketio.test.adapter.MessageListAdapter;
+import com.socketio.test.api.ApiInstManager;
+import com.socketio.test.api.IApi;
 import com.socketio.test.model.MessageInfo;
 import com.socketio.test.model.MessageReceiveEvent;
+import com.socketio.test.model.ResponseInfo;
 import com.socketio.test.model.UserInfo;
 import com.socketio.test.utils.SocketIOManager;
 
@@ -32,6 +35,13 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import java.util.HashMap;
+import java.util.List;
+
+import io.reactivex.Observer;
+import io.reactivex.Scheduler;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 
 @EActivity(R.layout.activity_main)
 public class MainActivity extends AppCompatActivity implements MessageListAdapter.IListStatus {
@@ -48,6 +58,7 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
     ImageButton mBtnSendMsg;
 
     private SocketIOManager mSocketMgr;
+    private IApi mApiInst;
     private MessageListAdapter mMsgListAdapter;
     private Gson mGson;
     private String mRoomId = null;
@@ -85,18 +96,38 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
         mUserInfo = new UserInfo();
         mRoomUserInfoMap = new HashMap<>();
         mSocketMgr = SocketIOManager.getInstance();
+        mApiInst = ApiInstManager.getApiInstance();
         SocketIOManager.Options options = new SocketIOManager.Options();
 
         mUserInfo.setUserId(Long.toString(userId));
         mUserInfo.setUserName(userName);
 
         // Init socket io commit
-        options.host("https://10.24.100.101:8081")
+        options.host("https://192.168.100.2:8081")
                 .isForceNew(true)
                 .reconnection(false)
                 .query("auth_token=" + userId);
         mSocketMgr.init(options);
         mSocketMgr.connect();
+
+        mApiInst.getUserInfoList()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<ResponseInfo>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {}
+
+                    @Override
+                    public void onNext(ResponseInfo responseInfo) {
+                        Log.d("randy", "");
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {}
+
+                    @Override
+                    public void onComplete() {}
+                });
 
         EventBus.getDefault().register(this);
     }
