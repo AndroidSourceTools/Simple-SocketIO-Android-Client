@@ -19,4 +19,8 @@ public interface IApi {
     @POST("/api/v1/users/sign_up")
     Observable<ResponseInfo> signUpUser(@Field("user_name") String userName, @Field("user_pwd") String userPwd);
 
+    @FormUrlEncoded
+    @POST("/api/v1/users/sign_in")
+    Observable<ResponseInfo> signInUser(@Field("user_name") String userName, @Field("user_pwd") String userPwd);
+
 }
