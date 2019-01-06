@@ -11,9 +11,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.socketio.test.api.ApiInstManager;
 import com.socketio.test.api.IApi;
 import com.socketio.test.model.ResponseInfo;
+import com.socketio.test.model.UserInfo;
 
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
@@ -24,10 +26,7 @@ import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
-
-import static com.socketio.test.MainActivity.EXTRA_KEY_INVITED_USER_ID;
-import static com.socketio.test.MainActivity.EXTRA_KEY_USER_ID;
-import static com.socketio.test.MainActivity.EXTRA_KEY_USER_NAME;
+import static com.socketio.test.MainActivity.EXTRA_KEY_USER_INFO;
 
 @EActivity(R.layout.activity_login)
 public class LoginActivity extends AppCompatActivity {
@@ -41,9 +40,13 @@ public class LoginActivity extends AppCompatActivity {
     @ViewById(R.id.btn_login)
     Button mBtnLogin;
 
+    private Gson mGson;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mGson = new Gson();
     }
 
     @Click({R.id.btn_login, R.id.btn_signup})
@@ -52,20 +55,21 @@ public class LoginActivity extends AppCompatActivity {
 
         String name = mEtUserName.getText().toString();
         String pwd = mEtUserPwd.getText().toString();
+        IApi apiInst = ApiInstManager.getApiInstance();
+
         if (id == R.id.btn_signup) {
             if (TextUtils.isEmpty(name) || TextUtils.isEmpty(pwd)) {
                 Toast.makeText(LoginActivity.this, getString(R.string.toast_hint_no_valid_user_name_and_pwd), Toast.LENGTH_LONG).show();
                 return;
             }
 
-            IApi apiInst = ApiInstManager.getApiInstance();
-
             apiInst.signUpUser(name, pwd)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new Observer<ResponseInfo>() {
                         @Override
-                        public void onSubscribe(Disposable d) {}
+                        public void onSubscribe(Disposable d) {
+                        }
 
                         @Override
                         public void onNext(ResponseInfo responseInfo) {
@@ -73,30 +77,49 @@ public class LoginActivity extends AppCompatActivity {
                         }
 
                         @Override
-                        public void onError(Throwable e) {}
+                        public void onError(Throwable e) {
+                        }
 
                         @Override
-                        public void onComplete() {}
+                        public void onComplete() {
+                        }
                     });
 
         } else if (id == R.id.btn_login) {
-            long curUserID = 1545807642;
-            long invitedUserID = 1545807641;
-//        String curUserID = "2";
-//        String invitedUserID = "1";
-
             String userName = mEtUserName.getText().toString();
+
             if (TextUtils.isEmpty(name) || TextUtils.isEmpty(pwd)) {
                 Toast.makeText(LoginActivity.this, getString(R.string.toast_hint_no_valid_user_name_and_pwd), Toast.LENGTH_LONG).show();
                 return;
             }
-            Intent intent = new Intent(LoginActivity.this, MainActivity_.class);
-            intent.putExtra(EXTRA_KEY_USER_NAME, userName);
-            // TODO: Need a real user id
-            intent.putExtra(EXTRA_KEY_USER_ID, curUserID);
-            intent.putExtra(EXTRA_KEY_INVITED_USER_ID, invitedUserID);
-            startActivity(intent);
-            finish();
+
+            apiInst.signInUser(userName, pwd)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Observer<ResponseInfo>() {
+                        @Override
+                        public void onSubscribe(Disposable d) {
+                        }
+
+                        @Override
+                        public void onNext(ResponseInfo responseInfo) {
+                            Intent intent = new Intent(LoginActivity.this, MainActivity_.class);
+                            UserInfo userInfo = mGson.fromJson(mGson.toJson(responseInfo.getPayload()), UserInfo.class);
+
+                            intent.putExtra(EXTRA_KEY_USER_INFO, userInfo);
+                            startActivity(intent);
+                            finish();
+                        }
+
+                        @Override
+                        public void onError(Throwable e) {
+                            Toast.makeText(LoginActivity.this, getString(R.string.toast_hint_login_fail), Toast.LENGTH_LONG).show();
+                        }
+
+                        @Override
+                        public void onComplete() {
+                        }
+                    });
         }
     }
 }
