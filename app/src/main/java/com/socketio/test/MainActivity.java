@@ -3,7 +3,9 @@ package com.socketio.test;
 import android.content.Intent;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -15,6 +17,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import com.google.android.material.navigation.NavigationView;
 import com.google.gson.Gson;
 import com.socketio.test.adapter.MessageListAdapter;
 import com.socketio.test.api.ApiInstManager;
@@ -32,10 +35,8 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import java.util.HashMap;
-import java.util.List;
 
 import io.reactivex.Observer;
-import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -43,16 +44,18 @@ import io.reactivex.schedulers.Schedulers;
 @EActivity(R.layout.activity_main)
 public class MainActivity extends AppCompatActivity implements MessageListAdapter.IListStatus {
 
-    public static final String EXTRA_KEY_USER_NAME = "extra_key_user_name";
-    public static final String EXTRA_KEY_USER_ID = "extra_key_user_id";
-    public static final String EXTRA_KEY_INVITED_USER_ID = "extra_key_invited_user_id";
+    public static final String EXTRA_KEY_USER_INFO = "extra_key_user_info";
 
     @ViewById(R.id.rv_msg_list)
     RecyclerView mRvMsgList;
+    @ViewById(R.id.rv_member_list)
+    RecyclerView mRvMemberList;
     @ViewById(R.id.et_message_box)
     EditText mEtMessageBox;
     @ViewById(R.id.btn_send_msg)
     ImageButton mBtnSendMsg;
+    @ViewById(R.id.dl_drawer_layout)
+    DrawerLayout mDlDrawerLayout;
 
     private SocketIOManager mSocketMgr;
     private IApi mApiInst;
@@ -74,39 +77,56 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
 
     private void initView() {
         mMsgListAdapter = new MessageListAdapter(this, mUserInfo.getUserId(), this);
-        LinearLayoutManager layoutMgr = new LinearLayoutManager(this);
+        LinearLayoutManager msgListLayoutMgr = new LinearLayoutManager(this);
 
-        layoutMgr.setStackFromEnd(true);
-        mRvMsgList.setLayoutManager(layoutMgr);
+        msgListLayoutMgr.setStackFromEnd(true);
+        mRvMsgList.setLayoutManager(msgListLayoutMgr);
         mRvMsgList.setAdapter(mMsgListAdapter);
         mRvMsgList.setHasFixedSize(true);
         mRvMsgList.addItemDecoration(new DividerItemDecoration(this, 0));
         mRvMsgList.setItemAnimator(new DefaultItemAnimator());
+
+        mDlDrawerLayout.addDrawerListener(new DrawerLayout.DrawerListener() {
+            @Override
+            public void onDrawerSlide(@NonNull View drawerView, float slideOffset) {
+
+            }
+
+            @Override
+            public void onDrawerOpened(@NonNull View drawerView) {
+                Log.d("randy", "onDrawerOpened");
+            }
+
+            @Override
+            public void onDrawerClosed(@NonNull View drawerView) {
+                Log.d("randy", "onDrawerClosed");
+            }
+
+            @Override
+            public void onDrawerStateChanged(int newState) {
+
+            }
+        });
     }
 
     private void init() {
         Intent intent = getIntent();
-        String userName = intent.getStringExtra(EXTRA_KEY_USER_NAME);
-        // userId supposed to be user token
-        long userId = intent.getLongExtra(EXTRA_KEY_USER_ID, -1);
+        mUserInfo = intent.getParcelableExtra(EXTRA_KEY_USER_INFO);
         mGson = new Gson();
-        mUserInfo = new UserInfo();
         mRoomUserInfoMap = new HashMap<>();
         mSocketMgr = SocketIOManager.getInstance();
         mApiInst = ApiInstManager.getApiInstance();
         SocketIOManager.Options options = new SocketIOManager.Options();
 
-        mUserInfo.setUserId(Long.toString(userId));
-        mUserInfo.setUserName(userName);
-
         // Init socket io commit
-        options.host("https://192.168.100.2:8081")
+        options.host("https://172.20.10.2:8081")
                 .isForceNew(true)
                 .reconnection(false)
-                .query("auth_token=" + userId);
+                .query("auth_token=" + mUserInfo.getUserId());
         mSocketMgr.init(options);
         mSocketMgr.connect();
 
+        // TODO: for getUserInfoList testing
         mApiInst.getUserInfoList()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -242,8 +262,11 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
                     case 1: {
                         // Event for creating room, message content is RoomID
                         mRoomId = msgInfo.getMessage();
+
                         mSocketMgr.joinRoom(mRoomId, mUserInfo);
                         Log.d("randy", "Create Room...");
+                        // TODO: For inviteMember testing
+                        mSocketMgr.inviteMember(mRoomId, mUserInfo);
                     }
                     break;
                     case 2: {
