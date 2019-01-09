@@ -2,13 +2,13 @@ package com.socketio.test.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
 import java.util.List;
-//TODO: parcelable
+
 public class UserInfo implements Parcelable {
     // Maybe it is user token
     @SerializedName("user_id")
