@@ -14,11 +14,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.gyf.barlibrary.BarHide;
+import com.gyf.barlibrary.ImmersionBar;
+import com.socketio.test.adapter.MemberListAdapter;
 import com.socketio.test.adapter.MessageListAdapter;
 import com.socketio.test.api.ApiInstManager;
 import com.socketio.test.api.IApi;
@@ -26,6 +31,7 @@ import com.socketio.test.model.MessageInfo;
 import com.socketio.test.model.MessageReceiveEvent;
 import com.socketio.test.model.ResponseInfo;
 import com.socketio.test.model.UserInfo;
+import com.socketio.test.utils.Constants;
 import com.socketio.test.utils.SocketIOManager;
 
 import org.androidannotations.annotations.AfterViews;
@@ -36,7 +42,10 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.net.HttpURLConnection;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -44,7 +53,7 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 @EActivity(R.layout.activity_main)
-public class MainActivity extends AppCompatActivity implements MessageListAdapter.IListStatusListener {
+public class MainActivity extends AppCompatActivity implements MessageListAdapter.IListStatusListener, MemberListAdapter.IMemberItemClickListener {
 
     public static final String EXTRA_KEY_USER_INFO = "extra_key_user_info";
 
@@ -62,10 +71,12 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
     private SocketIOManager mSocketMgr;
     private IApi mApiInst;
     private MessageListAdapter mMsgListAdapter;
+    private MemberListAdapter mMemberListAdapter;
     private Gson mGson;
     private String mRoomId = null;
     private UserInfo mUserInfo;
     private HashMap<String, UserInfo> mRoomUserInfoMap;
+    private boolean mIsImmersiveHasInit = false;
 
 
     @Override
@@ -73,14 +84,39 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
         super.onCreate(savedInstanceState);
     }
 
+    void initImmersive() {
+        ImmersionBar.with(this)
+                .transparentBar()
+                .hideBar(BarHide.FLAG_HIDE_BAR)
+                .keyboardEnable(true)
+                .keyboardMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
+                .setOnKeyboardListener((isPopup, keyboardHeight) -> {
+                    if (!isPopup && !mIsImmersiveHasInit) {
+                        mIsImmersiveHasInit = true;
+                        ImmersionBar.with(MainActivity.this).destroy();
+                        initImmersive();
+                    } else if (isPopup && mIsImmersiveHasInit) {
+                        mIsImmersiveHasInit = false;
+                    }
+                })
+                .init();
+    }
+
     @AfterViews
     void initView() {
+        initImmersive();
+
         LinearLayoutManager msgListLayoutMgr = new LinearLayoutManager(this);
         msgListLayoutMgr.setStackFromEnd(true);
         mRvMsgList.setLayoutManager(msgListLayoutMgr);
         mRvMsgList.setHasFixedSize(true);
         mRvMsgList.addItemDecoration(new DividerItemDecoration(this, 0));
         mRvMsgList.setItemAnimator(new DefaultItemAnimator());
+
+        mRvMemberList.setLayoutManager(new LinearLayoutManager(this));
+        mRvMemberList.setHasFixedSize(true);
+        mRvMemberList.addItemDecoration(new DividerItemDecoration(this, 0));
+        mRvMemberList.setItemAnimator(new DefaultItemAnimator());
 
         mDlDrawerLayout.addDrawerListener(new DrawerLayout.DrawerListener() {
             @Override
@@ -115,8 +151,10 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
         mApiInst = ApiInstManager.getApiInstance();
         SocketIOManager.Options options = new SocketIOManager.Options();
         mMsgListAdapter = new MessageListAdapter(this, mUserInfo.getUserId(), this);
+        mMemberListAdapter = new MemberListAdapter(this, this);
 
         mRvMsgList.setAdapter(mMsgListAdapter);
+        mRvMemberList.setAdapter(mMemberListAdapter);
 
         // Init socket io commit
         options.host("https://172.20.10.2:8081")
@@ -126,7 +164,7 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
         mSocketMgr.init(options);
         mSocketMgr.connect();
 
-        // TODO: for getUserInfoList testing
+        // Init member list
         mApiInst.getUserInfoList()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -137,11 +175,23 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
 
                     @Override
                     public void onNext(ResponseInfo responseInfo) {
-                        Log.d("randy", "");
+                        if (responseInfo.getStatus() == HttpURLConnection.HTTP_OK) {
+                            Map<String, Object> payload = responseInfo.getPayload();
+                            List<UserInfo> userInfoList = mGson.fromJson(payload.get("user_info_list").toString(), new TypeToken<List<UserInfo>>() {
+                            }.getType());
+
+                            mMemberListAdapter.addMemberInfos(userInfoList.toArray(new UserInfo[0]));
+                        } else {
+                            onError(new Throwable(new StringBuilder("Api fail status = ")
+                                    .append(responseInfo.getStatus()).append(" , message = ")
+                                    .append(responseInfo.getMessage())
+                                    .toString()));
+                        }
                     }
 
                     @Override
                     public void onError(Throwable e) {
+                        Log.d(Constants.TAG, e.getMessage());
                     }
 
                     @Override
@@ -157,6 +207,7 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
         super.onDestroy();
         mSocketMgr.leaveRoom(mRoomId, mUserInfo);
         mSocketMgr.disconnect();
+        ImmersionBar.with(this).destroy();
         EventBus.getDefault().unregister(this);
     }
 
@@ -288,5 +339,10 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
     @Override
     public void onItemAdded() {
         mRvMsgList.smoothScrollToPosition(mMsgListAdapter.getItemCount() - 1);
+    }
+
+    @Override
+    public void onMemberItemClick() {
+
     }
 }
