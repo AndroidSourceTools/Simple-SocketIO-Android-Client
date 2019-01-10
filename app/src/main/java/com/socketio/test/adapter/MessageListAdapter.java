@@ -26,7 +26,7 @@ import static com.socketio.test.adapter.MessageListAdapter.MESSAGE_FROM_CONSTANT
 
 public class MessageListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    public interface IListStatus {
+    public interface IListStatusListener {
         void onItemAdded();
     }
 
@@ -34,15 +34,13 @@ public class MessageListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         FROM_MY_MESSAGE, FROM_THEIR_MESSAGE, EVENT_MESSAGE
     }
 
-    private final Context mCtx;
-    private IListStatus mListener;
+    private IListStatusListener mListener;
     private final LayoutInflater mInflator;
     private final ArrayList<MessageInfo> mMsgInfoList;
     private HashMap<String, UserInfo> mRoomUserInfoMap;
     private final String mUserId;
 
-    public MessageListAdapter(Context ctx, String userId, IListStatus listener) {
-        this.mCtx = ctx;
+    public MessageListAdapter(Context ctx, String userId, IListStatusListener listener) {
         this.mListener = listener;
         this.mUserId = userId;
         this.mInflator = LayoutInflater.from(ctx);
@@ -58,8 +56,11 @@ public class MessageListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         int changeFrom = getItemCount();
 
         mMsgInfoList.addAll(Arrays.asList(msgInfos));
-        notifyItemRangeInserted(changeFrom, getItemCount());
-        mListener.onItemAdded();
+        notifyItemRangeInserted(changeFrom, msgInfos.length);
+
+        if(mListener != null) {
+            mListener.onItemAdded();
+        }
     }
 
     @Override
@@ -79,11 +80,11 @@ public class MessageListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int viewType) {
         if (viewType == FROM_MY_MESSAGE.ordinal()) {
-            return new MyMessageItemViewHolder(mInflator.inflate(R.layout.my_message, viewGroup, false));
+            return new MyMessageItemViewHolder(mInflator.inflate(R.layout.view_my_message, viewGroup, false));
         } else if (viewType == FROM_THEIR_MESSAGE.ordinal()) {
-            return new TheirMessageItemViewHolder(mInflator.inflate(R.layout.their_message, viewGroup, false));
+            return new TheirMessageItemViewHolder(mInflator.inflate(R.layout.view_their_message, viewGroup, false));
         } else {
-            return new EventMessageItemViewHolder(mInflator.inflate(R.layout.event_message, viewGroup, false));
+            return new EventMessageItemViewHolder(mInflator.inflate(R.layout.view_event_message, viewGroup, false));
         }
     }
 

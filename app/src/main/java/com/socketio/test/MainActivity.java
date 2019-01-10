@@ -18,7 +18,6 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
-import com.google.android.material.navigation.NavigationView;
 import com.google.gson.Gson;
 import com.socketio.test.adapter.MessageListAdapter;
 import com.socketio.test.api.ApiInstManager;
@@ -45,7 +44,7 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 @EActivity(R.layout.activity_main)
-public class MainActivity extends AppCompatActivity implements MessageListAdapter.IListStatus {
+public class MainActivity extends AppCompatActivity implements MessageListAdapter.IListStatusListener {
 
     public static final String EXTRA_KEY_USER_INFO = "extra_key_user_info";
 
