@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -28,12 +29,14 @@ import com.socketio.test.model.ResponseInfo;
 import com.socketio.test.model.UserInfo;
 import com.socketio.test.utils.SocketIOManager;
 
+import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.ViewById;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+
 import java.util.HashMap;
 
 import io.reactivex.Observer;
@@ -69,19 +72,13 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        init();
-        initView();
     }
 
-    private void initView() {
-        mMsgListAdapter = new MessageListAdapter(this, mUserInfo.getUserId(), this);
+    @AfterViews
+    void initView() {
         LinearLayoutManager msgListLayoutMgr = new LinearLayoutManager(this);
-
         msgListLayoutMgr.setStackFromEnd(true);
         mRvMsgList.setLayoutManager(msgListLayoutMgr);
-        mRvMsgList.setAdapter(mMsgListAdapter);
         mRvMsgList.setHasFixedSize(true);
         mRvMsgList.addItemDecoration(new DividerItemDecoration(this, 0));
         mRvMsgList.setItemAnimator(new DefaultItemAnimator());
@@ -109,7 +106,8 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
         });
     }
 
-    private void init() {
+    @AfterViews
+    void init() {
         Intent intent = getIntent();
         mUserInfo = intent.getParcelableExtra(EXTRA_KEY_USER_INFO);
         mGson = new Gson();
@@ -117,6 +115,9 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
         mSocketMgr = SocketIOManager.getInstance();
         mApiInst = ApiInstManager.getApiInstance();
         SocketIOManager.Options options = new SocketIOManager.Options();
+        mMsgListAdapter = new MessageListAdapter(this, mUserInfo.getUserId(), this);
+
+        mRvMsgList.setAdapter(mMsgListAdapter);
 
         // Init socket io commit
         options.host("https://172.20.10.2:8081")
@@ -132,7 +133,8 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<ResponseInfo>() {
                     @Override
-                    public void onSubscribe(Disposable d) {}
+                    public void onSubscribe(Disposable d) {
+                    }
 
                     @Override
                     public void onNext(ResponseInfo responseInfo) {
@@ -140,10 +142,12 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
                     }
 
                     @Override
-                    public void onError(Throwable e) {}
+                    public void onError(Throwable e) {
+                    }
 
                     @Override
-                    public void onComplete() {}
+                    public void onComplete() {
+                    }
                 });
 
         EventBus.getDefault().register(this);
