@@ -57,6 +57,8 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
 
     public static final String EXTRA_KEY_USER_INFO = "extra_key_user_info";
 
+    @ViewById(R.id.v_status_bar)
+    View mVStatusBar;
     @ViewById(R.id.rv_msg_list)
     RecyclerView mRvMsgList;
     @ViewById(R.id.rv_member_list)
@@ -86,8 +88,9 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
 
     void initImmersive() {
         ImmersionBar.with(this)
-                .transparentBar()
-                .hideBar(BarHide.FLAG_HIDE_BAR)
+                .statusBarView(mVStatusBar)
+                .transparentNavigationBar()
+                .hideBar(BarHide.FLAG_HIDE_NAVIGATION_BAR)
                 .keyboardEnable(true)
                 .keyboardMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
                 .setOnKeyboardListener((isPopup, keyboardHeight) -> {
