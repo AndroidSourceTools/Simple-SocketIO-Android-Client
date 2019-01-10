@@ -9,6 +9,9 @@ public class ResponseInfo {
     @SerializedName("status")
     private int mStatus;
 
+    @SerializedName("message")
+    private int mMessage;
+
     @SerializedName("payload")
     private HashMap<String, Object> mPayload;
 
@@ -26,6 +29,14 @@ public class ResponseInfo {
 
     public void setPayload(HashMap<String, Object> mPayload) {
         this.mPayload = mPayload;
+    }
+
+    public int getMessage() {
+        return mMessage;
+    }
+
+    public void setMessage(int mMessage) {
+        this.mMessage = mMessage;
     }
 
 }
