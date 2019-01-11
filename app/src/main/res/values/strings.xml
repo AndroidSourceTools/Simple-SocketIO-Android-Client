@@ -6,5 +6,6 @@
     <string name="toast_hint_user_signup_success">使用者註冊成功！！</string>
 
     <!-- MainActivity -->
-    <string name="edittext_hint_message_input">     請輸入訊息...</string>
+    <string name="hint_edittext_message_input">     請輸入訊息...</string>
+    <string name="title_member_list">成員列表</string>
 </resources>
