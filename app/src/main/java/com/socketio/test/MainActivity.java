@@ -160,7 +160,7 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
         mRvMemberList.setAdapter(mMemberListAdapter);
 
         // Init socket io commit
-        options.host("https://172.20.10.2:8081")
+        options.host("https://192.168.100.2:8081")
                 .isForceNew(true)
                 .reconnection(false)
                 .query("auth_token=" + mUserInfo.getUserId());
@@ -208,7 +208,7 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mSocketMgr.leaveRoom(mRoomId, mUserInfo);
+        mSocketMgr.leaveRoom(mRoomId, mUserInfo.getUserId());
         mSocketMgr.disconnect();
         ImmersionBar.with(this).destroy();
         EventBus.getDefault().unregister(this);
@@ -262,17 +262,6 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
                             return;
                         }
 
-//                        List<UserInfo> newUserInfoList = mGson.fromJson(msgInfo.getMessage(), new TypeToken<List<UserInfo>>(){}.getType());
-//                        List<UserInfo> oldUserInfoList = new ArrayList<>();
-//
-//                        oldUserInfoList.addAll(mRoomUserInfoMap.values());
-//
-//                        if(newUserInfoList.size() > oldUserInfoList.size()) {
-//                            newUserInfoList.removeAll(oldUserInfoList);
-//                        } else {
-//                            oldUserInfoList.removeAll(newUserInfoList);
-//                        }
-
                         switch (eventResponseType) {
                             case 2: {
                                 UserInfo userInfo = mGson.fromJson(msgInfo.getMessage(), UserInfo.class);
@@ -323,7 +312,7 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
                         mSocketMgr.joinRoom(mRoomId, mUserInfo);
                         Log.d("randy", "Create Room...");
                         // TODO: For inviteMember testing
-                        mSocketMgr.inviteMember(mRoomId, mUserInfo);
+                        //mSocketMgr.inviteMember(mRoomId, mUserInfo);
                     }
                     break;
                     case 2: {

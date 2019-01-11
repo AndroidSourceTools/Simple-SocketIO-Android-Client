@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.reflect.TypeToken;
 import com.socketio.test.model.MessageInfo;
 import com.socketio.test.model.MessageReceiveEvent;
 import com.socketio.test.model.RoomInfo;
@@ -22,6 +23,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -143,36 +146,32 @@ public class SocketIOManager {
 
             JSONObject jsonObj = (JSONObject) args[0];
             RoomInfo roomInfo = new RoomInfo();
-            ArrayList<UserInfo> userInfoList = new ArrayList<>();
+            ArrayList<String> userIds = new ArrayList<>();
 
             roomInfo.setRoomId(jsonObj.optString("room_id"));
             roomInfo.setRoomType(jsonObj.optInt("room_type"));
             roomInfo.setLastMessage(jsonObj.optString("last_message"));
             roomInfo.setUnReadCount(jsonObj.optInt("unread_count"));
             roomInfo.setLastMessageTimestamp(jsonObj.optLong("last_message_timestamp"));
-            JSONArray userInfoJsonAry = null;
+            JSONArray userIdsJsonAry = null;
 
             try {
-                userInfoJsonAry = new JSONArray(jsonObj.optString("user_info_list"));
+                userIdsJsonAry = new JSONArray(jsonObj.optString("user_ids"));
             } catch (JSONException e) {
                 e.printStackTrace();
-                userInfoJsonAry = new JSONArray();
-            }
+                userIdsJsonAry = new JSONArray();
+            } finally {
+                for (int i = 0, len = userIdsJsonAry.length(); i < len; i++) {
+                    try {
+                        String userId = userIdsJsonAry.getString(i);
 
-            for (int i = 0, len = userInfoJsonAry.length(); i < len; i++) {
-                try {
-                    String element = userInfoJsonAry.getString(i);
-                    JSONObject userInfoJsonObj = new JSONObject(element);
-                    UserInfo userInfo = new UserInfo();
-
-                    userInfo.setUserId(userInfoJsonObj.optString("user_id"));
-                    userInfo.setUserName(userInfoJsonObj.optString("user_name"));
-                    userInfoList.add(userInfo);
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                        userIds.add(userId);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
+                roomInfo.setUserIds(userIds);
             }
-            roomInfo.setUserInfoList(userInfoList);
 
             if (roomInfo == null || TextUtils.isEmpty(roomInfo.getRoomId())) {
                 return;
@@ -222,10 +221,10 @@ public class SocketIOManager {
         if (!isConnected()) {
             return;
         }
-        JsonArray jsonAry = new JsonArray();
+        //JsonArray jsonAry = new JsonArray();
 
-        jsonAry.add(mGon.toJson(userInfo));
-        mSocket.emit("create-room", roomType, jsonAry);
+        //jsonAry.add(mGon.toJson(userInfo));
+        mSocket.emit("create-room", roomType, mGon.toJson(userInfo));
     }
 
     public void joinRoom(String roomId, UserInfo userInfo) {
@@ -235,11 +234,17 @@ public class SocketIOManager {
         mSocket.emit("join-room", roomId, mGon.toJson(userInfo));
     }
 
-    public void leaveRoom(String roomId, UserInfo userInfo) {
+    public void leaveRoom(String roomId, String userId) {
         if (!isConnected()) {
             return;
         }
-        mSocket.emit("leave-room", roomId, mGon.toJson(userInfo));
+        mSocket.emit("leave-room", roomId, userId);
+    }
+
+    public void inviteMember(String roomId, UserInfo... memberInfoAry) {
+        JsonArray memberInfoJsonAry = (JsonArray) mGon.toJsonTree(Arrays.asList(memberInfoAry), new TypeToken<List<UserInfo>>() {}.getType());
+
+        mSocket.emit("invite_member", roomId, memberInfoJsonAry.toString());
     }
 
     public void sendMessage(MessageInfo msgInfo) {
