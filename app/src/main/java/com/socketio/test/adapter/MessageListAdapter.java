@@ -40,7 +40,7 @@ public class MessageListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     private IListStatusListener mListener;
     private final LayoutInflater mInflator;
     private final ArrayList<MessageInfo> mMsgInfoList;
-    private HashMap<String, UserInfo> mRoomUserInfoMap;
+    private HashMap<String, UserInfo> mIdInfoMap;
     private final String mUserId;
 
     public MessageListAdapter(Context ctx, String userId, IListStatusListener listener) {
@@ -48,14 +48,14 @@ public class MessageListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         this.mUserId = userId;
         this.mInflator = LayoutInflater.from(ctx);
         this.mMsgInfoList = new ArrayList<>();
-        this.mRoomUserInfoMap = new HashMap<>();
+        this.mIdInfoMap = new HashMap<>();
     }
 
-    public void updateMemberInfos(List<UserInfo> memberInfos) {
-        mRoomUserInfoMap.clear();
+    public void updateMemberInfoList(List<UserInfo> memberInfoList) {
+        mIdInfoMap.clear();
 
-        for (UserInfo userInfo : memberInfos) {
-            mRoomUserInfoMap.put(userInfo.getUserId(), userInfo);
+        for (UserInfo userInfo : memberInfoList) {
+            mIdInfoMap.put(userInfo.getUserId(), userInfo);
         }
         notifyDataSetChanged();
     }
@@ -107,7 +107,7 @@ public class MessageListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             myMsgItemHolder.mMyMsgBody.setText(msgInfo.getMessage());
         } else if (viewType == FROM_THEIR_MESSAGE.ordinal()) {
             TheirMessageItemViewHolder theirMsgItemHolder = (TheirMessageItemViewHolder) messageItemViewHolder;
-            String theirName = (mRoomUserInfoMap.containsKey(msgInfo.getUserId())) ? mRoomUserInfoMap.get(msgInfo.getUserId()).getUserName() : null;
+            String theirName = (mIdInfoMap.containsKey(msgInfo.getUserId())) ? mIdInfoMap.get(msgInfo.getUserId()).getUserName() : null;
 
             theirMsgItemHolder.mTheirName.setText(theirName);
             theirMsgItemHolder.mTheirMsgBody.setText(msgInfo.getMessage());

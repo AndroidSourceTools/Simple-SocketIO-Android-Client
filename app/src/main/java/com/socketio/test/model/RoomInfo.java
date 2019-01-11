@@ -13,7 +13,7 @@ public class RoomInfo {
     @SerializedName("unread_count")
     private int mUnReadCount;
     @SerializedName("user_ids")
-    private ArrayList<String> mUserIds;
+    private ArrayList<String> mUserIdList;
     @SerializedName("last_message")
     private String mLastMessage;
     @SerializedName("last_message_timestamp")
@@ -27,12 +27,12 @@ public class RoomInfo {
         this.mRoomId = mRoomId;
     }
 
-    public ArrayList<String> getUserIds() {
-        return mUserIds;
+    public ArrayList<String> getUserIdList() {
+        return mUserIdList;
     }
 
-    public void setUserIds(ArrayList<String> userIds) {
-        this.mUserIds = userIds;
+    public void setUserIdList(ArrayList<String> userIdList) {
+        this.mUserIdList = userIdList;
     }
 
     public int getRoomType() {

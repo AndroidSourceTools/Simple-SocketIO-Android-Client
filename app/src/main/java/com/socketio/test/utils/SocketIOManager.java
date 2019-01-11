@@ -1,6 +1,5 @@
 package com.socketio.test.utils;
 
-import android.graphics.Path;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -170,7 +169,7 @@ public class SocketIOManager {
                         e.printStackTrace();
                     }
                 }
-                roomInfo.setUserIds(userIds);
+                roomInfo.setUserIdList(userIds);
             }
 
             if (roomInfo == null || TextUtils.isEmpty(roomInfo.getRoomId())) {
@@ -188,14 +187,15 @@ public class SocketIOManager {
                 return;
             }
 
-            String roomID = args[0].toString();
-            if (TextUtils.isEmpty(roomID)) {
+            String roomInfoJsonStr = args[0].toString();
+            if (TextUtils.isEmpty(roomInfoJsonStr)) {
                 return;
             }
+
             MessageInfo msgInfo = new MessageInfo();
             msgInfo.setMessageType(-1);
             msgInfo.setEventResponseType(2);
-            msgInfo.setMessage(roomID);
+            msgInfo.setMessage(roomInfoJsonStr);
             MessageReceiveEvent<MessageInfo> msgRecvEvent = new MessageReceiveEvent<>(msgInfo);
 
             EventBus.getDefault().post(msgRecvEvent);
@@ -242,7 +242,8 @@ public class SocketIOManager {
     }
 
     public void inviteMember(String roomId, UserInfo... memberInfoAry) {
-        JsonArray memberInfoJsonAry = (JsonArray) mGon.toJsonTree(Arrays.asList(memberInfoAry), new TypeToken<List<UserInfo>>() {}.getType());
+        JsonArray memberInfoJsonAry = (JsonArray) mGon.toJsonTree(Arrays.asList(memberInfoAry), new TypeToken<List<UserInfo>>() {
+        }.getType());
 
         mSocket.emit("invite_member", roomId, memberInfoJsonAry.toString());
     }
