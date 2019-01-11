@@ -11,6 +11,8 @@ import com.socketio.test.R;
 import com.socketio.test.model.UserInfo;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import butterknife.BindView;
@@ -32,11 +34,10 @@ public class MemberListAdapter extends RecyclerView.Adapter<MemberListAdapter.Me
         this.mMemberInfoList = new ArrayList<>();
     }
 
-    public void addMemberInfos(UserInfo... userInfos) {
-        int changeFrom = getItemCount();
-
-        mMemberInfoList.addAll(Arrays.asList(userInfos));
-        notifyItemRangeInserted(changeFrom, userInfos.length);
+    public void updateMemberInfos(List<UserInfo> memberInfos) {
+        mMemberInfoList.clear();
+        mMemberInfoList.addAll(memberInfos);
+        notifyDataSetChanged();
     }
 
     @NonNull

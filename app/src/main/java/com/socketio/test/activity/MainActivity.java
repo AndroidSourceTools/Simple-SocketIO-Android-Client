@@ -187,10 +187,9 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
                             Map<String, Object> payload = responseInfo.getPayload();
                             List<UserInfo> userInfoList = mGson.fromJson(payload.get("user_info_list").toString(), new TypeToken<List<UserInfo>>() {
                             }.getType());
-                            UserInfo[] userInfos = userInfoList.toArray(new UserInfo[0]);
 
-                            mMsgListAdapter.addMemberInfo(userInfos);
-                            mMemberListAdapter.addMemberInfos(userInfos);
+                            mMsgListAdapter.updateMemberInfos(userInfoList);
+                            mMemberListAdapter.updateMemberInfos(userInfoList);
                         } else {
                             onError(new Throwable(new StringBuilder("Api fail status = ")
                                     .append(responseInfo.getStatus()).append(" , message = ")
@@ -289,12 +288,14 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
                                 UserInfo userInfo = mGson.fromJson(msgInfo.getMessage(), UserInfo.class);
 
                                 msgInfo.setMessage(userInfo.getUserName() + "加入聊天室");
+                                refreshMemberList();
                             }
                             break;
                             case 3: {
                                 UserInfo userInfo = mGson.fromJson(msgInfo.getMessage(), UserInfo.class);
 
                                 msgInfo.setMessage(userInfo.getUserName() + "離開聊天室");
+                                refreshMemberList();
                             }
                             break;
                         }

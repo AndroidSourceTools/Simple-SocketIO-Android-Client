@@ -18,6 +18,7 @@ import com.socketio.test.model.UserInfo;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -50,20 +51,13 @@ public class MessageListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         this.mRoomUserInfoMap = new HashMap<>();
     }
 
-    public void addMemberInfo(UserInfo... userInfos) {
-        for (UserInfo userInfo : userInfos) {
-            removeMemberInfo(userInfo);
+    public void updateMemberInfos(List<UserInfo> memberInfos) {
+        mRoomUserInfoMap.clear();
+
+        for (UserInfo userInfo : memberInfos) {
             mRoomUserInfoMap.put(userInfo.getUserId(), userInfo);
         }
-    }
-
-    public void removeMemberInfo(UserInfo... userInfos) {
-        for (UserInfo userInfo : userInfos) {
-            if (!mRoomUserInfoMap.containsKey(userInfo.getUserId())) {
-                continue;
-            }
-            mRoomUserInfoMap.remove(userInfo.getUserId());
-        }
+        notifyDataSetChanged();
     }
 
     public void addMessageInfos(MessageInfo... msgInfos) {
