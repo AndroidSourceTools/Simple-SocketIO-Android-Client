@@ -209,7 +209,7 @@ public class SocketIOManager {
             MessageReceiveEvent<MessageInfo> msgRecvEvent = new MessageReceiveEvent<>(msgInfo);
             EventBus.getDefault().post(msgRecvEvent);
         }).on("error", (Object... args) -> {
-            Log.d("randy", args.toString());
+            Log.d(Constants.TAG, args.toString());
         });
     }
 

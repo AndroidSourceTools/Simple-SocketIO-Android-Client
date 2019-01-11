@@ -1,4 +1,4 @@
-package com.socketio.test;
+package com.socketio.test.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -11,6 +11,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.socketio.test.R;
 import com.socketio.test.api.ApiInstManager;
 import com.socketio.test.api.IApi;
 import com.socketio.test.model.ResponseInfo;
@@ -24,7 +25,7 @@ import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
-import static com.socketio.test.MainActivity.EXTRA_KEY_USER_INFO;
+import static com.socketio.test.activity.MainActivity.EXTRA_KEY_USER_INFO;
 
 @EActivity(R.layout.activity_login)
 public class LoginActivity extends AppCompatActivity {

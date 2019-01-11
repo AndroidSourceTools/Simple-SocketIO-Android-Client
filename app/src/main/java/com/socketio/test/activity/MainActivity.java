@@ -1,4 +1,4 @@
-package com.socketio.test;
+package com.socketio.test.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -23,6 +23,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.gyf.barlibrary.BarHide;
 import com.gyf.barlibrary.ImmersionBar;
+import com.socketio.test.R;
 import com.socketio.test.adapter.MemberListAdapter;
 import com.socketio.test.adapter.MessageListAdapter;
 import com.socketio.test.api.ApiInstManager;
@@ -129,12 +130,12 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
 
             @Override
             public void onDrawerOpened(@NonNull View drawerView) {
-                Log.d("randy", "onDrawerOpened");
+                Log.d(Constants.TAG, "onDrawerOpened");
             }
 
             @Override
             public void onDrawerClosed(@NonNull View drawerView) {
-                Log.d("randy", "onDrawerClosed");
+                Log.d(Constants.TAG, "onDrawerClosed");
             }
 
             @Override
@@ -279,7 +280,7 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
                     }
                     break;
                     case 1: {
-                        Log.d("randy", "Receive message = " + msgInfo.getMessage() + " from " + msgInfo.getUserId());
+                        Log.d(Constants.TAG, "Receive message = " + msgInfo.getMessage() + " from " + msgInfo.getUserId());
                     }
                     break;
                     case 2: {
@@ -310,17 +311,17 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
                         mRoomId = msgInfo.getMessage();
 
                         mSocketMgr.joinRoom(mRoomId, mUserInfo);
-                        Log.d("randy", "Create Room...");
+                        Log.d(Constants.TAG, "Create Room...");
                         // TODO: For inviteMember testing
                         //mSocketMgr.inviteMember(mRoomId, mUserInfo);
                     }
                     break;
                     case 2: {
-                        Log.d("randy", "Join Room...");
+                        Log.d(Constants.TAG, "Join Room...");
                     }
                     break;
                     case 3: {
-                        Log.d("randy", "Leave Room...");
+                        Log.d(Constants.TAG, "Leave Room...");
                     }
                     break;
                 }
