@@ -78,7 +78,6 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
     private Gson mGson;
     private String mRoomId = null;
     private UserInfo mUserInfo;
-    private HashMap<String, UserInfo> mRoomUserInfoMap;
     private boolean mIsImmersiveHasInit = false;
 
 
@@ -150,12 +149,11 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
         Intent intent = getIntent();
         mUserInfo = intent.getParcelableExtra(EXTRA_KEY_USER_INFO);
         mGson = new Gson();
-        mRoomUserInfoMap = new HashMap<>();
         mSocketMgr = SocketIOManager.getInstance();
         mApiInst = ApiInstManager.getApiInstance();
-        SocketIOManager.Options options = new SocketIOManager.Options();
         mMsgListAdapter = new MessageListAdapter(this, mUserInfo.getUserId(), this);
         mMemberListAdapter = new MemberListAdapter(this, this);
+        SocketIOManager.Options options = new SocketIOManager.Options();
 
         mRvMsgList.setAdapter(mMsgListAdapter);
         mRvMemberList.setAdapter(mMemberListAdapter);
@@ -168,6 +166,12 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
         mSocketMgr.init(options);
         mSocketMgr.connect();
 
+        refreshMemberList();
+
+        EventBus.getDefault().register(this);
+    }
+
+    private void refreshMemberList() {
         // Init member list
         mApiInst.getUserInfoList()
                 .subscribeOn(Schedulers.io())
@@ -183,8 +187,10 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
                             Map<String, Object> payload = responseInfo.getPayload();
                             List<UserInfo> userInfoList = mGson.fromJson(payload.get("user_info_list").toString(), new TypeToken<List<UserInfo>>() {
                             }.getType());
+                            UserInfo[] userInfos = userInfoList.toArray(new UserInfo[0]);
 
-                            mMemberListAdapter.addMemberInfos(userInfoList.toArray(new UserInfo[0]));
+                            mMsgListAdapter.addMemberInfo(userInfos);
+                            mMemberListAdapter.addMemberInfos(userInfos);
                         } else {
                             onError(new Throwable(new StringBuilder("Api fail status = ")
                                     .append(responseInfo.getStatus()).append(" , message = ")
@@ -202,14 +208,30 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
                     public void onComplete() {
                     }
                 });
+    }
 
-        EventBus.getDefault().register(this);
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (!TextUtils.isEmpty(mRoomId) && mUserInfo != null) {
+            mSocketMgr.joinRoom(mRoomId, mUserInfo);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        if (!TextUtils.isEmpty(mRoomId) && mUserInfo != null) {
+            mSocketMgr.leaveRoom(mRoomId, mUserInfo.getUserId());
+        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mSocketMgr.leaveRoom(mRoomId, mUserInfo.getUserId());
+
         mSocketMgr.disconnect();
         ImmersionBar.with(this).destroy();
         EventBus.getDefault().unregister(this);
@@ -232,7 +254,6 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
     private void sendMessage(int msgType, String msg) {
         MessageInfo msgInfo = new MessageInfo();
 
-        // TODO: ROOD ID is fixed currently
         msgInfo.setUserId(mUserInfo.getUserId());
         msgInfo.setRoomId(mRoomId);
         msgInfo.setMessageTime(System.currentTimeMillis());
@@ -297,11 +318,10 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
                     break;
                 }
                 mMsgListAdapter.addMessageInfos(msgInfo);
-                mMsgListAdapter.updateRoomUserInfoMap(mRoomUserInfoMap);
             } else {
                 switch (eventResponseType) {
                     case 0: {
-                        Log.d("randy", "Connected...");
+                        Log.d(Constants.TAG, "Connected...");
 
                         mSocketMgr.createRoom(1, mUserInfo);
                     }

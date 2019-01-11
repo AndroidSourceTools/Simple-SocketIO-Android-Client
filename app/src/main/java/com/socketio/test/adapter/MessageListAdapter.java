@@ -1,8 +1,10 @@
 package com.socketio.test.adapter;
 
 import android.content.Context;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -48,8 +50,20 @@ public class MessageListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         this.mRoomUserInfoMap = new HashMap<>();
     }
 
-    public void updateRoomUserInfoMap(HashMap<String, UserInfo> roomUserInfoMap) {
-        mRoomUserInfoMap = roomUserInfoMap;
+    public void addMemberInfo(UserInfo... userInfos) {
+        for (UserInfo userInfo : userInfos) {
+            removeMemberInfo(userInfo);
+            mRoomUserInfoMap.put(userInfo.getUserId(), userInfo);
+        }
+    }
+
+    public void removeMemberInfo(UserInfo... userInfos) {
+        for (UserInfo userInfo : userInfos) {
+            if (!mRoomUserInfoMap.containsKey(userInfo.getUserId())) {
+                continue;
+            }
+            mRoomUserInfoMap.remove(userInfo.getUserId());
+        }
     }
 
     public void addMessageInfos(MessageInfo... msgInfos) {
@@ -58,7 +72,7 @@ public class MessageListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         mMsgInfoList.addAll(Arrays.asList(msgInfos));
         notifyItemRangeInserted(changeFrom, msgInfos.length);
 
-        if(mListener != null) {
+        if (mListener != null) {
             mListener.onItemAdded();
         }
     }
@@ -69,7 +83,7 @@ public class MessageListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         int eventResponseType = msgInfo.getEventResponseType();
         int messageType = msgInfo.getMessageType();
 
-        if(eventResponseType != -1) {
+        if (eventResponseType != -1) {
             return EVENT_MESSAGE.ordinal();
         } else {
             return this.mUserId.equals(msgInfo.getUserId()) ? FROM_MY_MESSAGE.ordinal() : FROM_THEIR_MESSAGE.ordinal();
@@ -93,11 +107,11 @@ public class MessageListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         MessageInfo msgInfo = mMsgInfoList.get(i);
         int viewType = messageItemViewHolder.getItemViewType();
 
-        if(viewType == FROM_MY_MESSAGE.ordinal()) {
+        if (viewType == FROM_MY_MESSAGE.ordinal()) {
             MyMessageItemViewHolder myMsgItemHolder = (MyMessageItemViewHolder) messageItemViewHolder;
 
             myMsgItemHolder.mMyMsgBody.setText(msgInfo.getMessage());
-        } else if (viewType == FROM_THEIR_MESSAGE.ordinal())  {
+        } else if (viewType == FROM_THEIR_MESSAGE.ordinal()) {
             TheirMessageItemViewHolder theirMsgItemHolder = (TheirMessageItemViewHolder) messageItemViewHolder;
             String theirName = (mRoomUserInfoMap.containsKey(msgInfo.getUserId())) ? mRoomUserInfoMap.get(msgInfo.getUserId()).getUserName() : null;
 
