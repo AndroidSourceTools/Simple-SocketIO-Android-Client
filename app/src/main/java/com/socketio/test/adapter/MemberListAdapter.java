@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import com.socketio.test.R;
 import com.socketio.test.model.UserInfo;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -35,21 +36,36 @@ public class MemberListAdapter extends RecyclerView.Adapter<MemberListAdapter.Me
     }
 
     public void addMemberInfo(UserInfo... userInfos) {
-        for(UserInfo userInfo : userInfos) {
-            if(mMemberInfoList.contains(userInfo)) {
+        boolean isChanged = false;
+
+        for (UserInfo userInfo : userInfos) {
+            if (mMemberInfoList.contains(userInfo)) {
                 continue;
             }
+            isChanged = true;
             mMemberInfoList.add(userInfo);
         }
+
+        if (!isChanged) {
+            return;
+        }
+
         notifyDataSetChanged();
     }
 
     public void removeMemberInfo(UserInfo... userInfos) {
+        boolean isChanged = false;
+
         for (UserInfo userInfo : userInfos) {
             if (!mMemberInfoList.contains(userInfo)) {
                 continue;
             }
+            isChanged = true;
             mMemberInfoList.remove(userInfo);
+        }
+
+        if (!isChanged) {
+            return;
         }
         notifyDataSetChanged();
     }

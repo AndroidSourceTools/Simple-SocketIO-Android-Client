@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -31,6 +32,7 @@ import com.socketio.test.api.IApi;
 import com.socketio.test.model.MessageInfo;
 import com.socketio.test.model.MessageReceiveEvent;
 import com.socketio.test.model.ResponseInfo;
+import com.socketio.test.model.RoomInfo;
 import com.socketio.test.model.UserInfo;
 import com.socketio.test.utils.Constants;
 import com.socketio.test.utils.SocketIOManager;
@@ -44,7 +46,6 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.net.HttpURLConnection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -71,6 +72,7 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
     @ViewById(R.id.dl_drawer_layout)
     DrawerLayout mDlDrawerLayout;
 
+    private Handler mHandler;
     private SocketIOManager mSocketMgr;
     private IApi mApiInst;
     private MessageListAdapter mMsgListAdapter;
@@ -147,17 +149,23 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
     @AfterViews
     void init() {
         Intent intent = getIntent();
+        mHandler = new Handler();
         mUserInfo = intent.getParcelableExtra(EXTRA_KEY_USER_INFO);
         mGson = new Gson();
-        mSocketMgr = SocketIOManager.getInstance();
         mApiInst = ApiInstManager.getApiInstance();
         mMsgListAdapter = new MessageListAdapter(this, mUserInfo.getUserId(), this);
         mMemberListAdapter = new MemberListAdapter(this, this);
-        SocketIOManager.Options options = new SocketIOManager.Options();
 
         mRvMsgList.setAdapter(mMsgListAdapter);
         mRvMemberList.setAdapter(mMemberListAdapter);
 
+        initSocketIo();
+        EventBus.getDefault().register(this);
+    }
+
+    private void initSocketIo() {
+        SocketIOManager.Options options = new SocketIOManager.Options();
+        mSocketMgr = SocketIOManager.getInstance();
         // Init socket io commit
         options.host(Constants.SOCKET_SERVER_URL)
                 .isForceNew(true)
@@ -165,13 +173,9 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
                 .query("auth_token=" + mUserInfo.getUserId());
         mSocketMgr.init(options);
         mSocketMgr.connect();
-
-        refreshMemberList();
-
-        EventBus.getDefault().register(this);
     }
 
-    private void refreshMemberList() {
+    private void refreshMemberList(RoomInfo roomInfo) {
         // Init member list
         mApiInst.getUserInfoList()
                 .subscribeOn(Schedulers.io())
@@ -188,7 +192,21 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
                             List<UserInfo> userInfoList = mGson.fromJson(payload.get("user_info_list").toString(), new TypeToken<List<UserInfo>>() {
                             }.getType());
 
-                            mMsgListAdapter.updateMemberInfos(userInfoList);
+                            if (roomInfo != null) {
+                                List<String> userIdList = roomInfo.getUserIdList();
+
+                                for (String userId : userIdList) {
+                                    for (UserInfo userInfo : userInfoList) {
+                                        if (!TextUtils.equals(userId, userInfo.getUserId())) {
+                                            continue;
+                                        }
+                                        mMemberListAdapter.addMemberInfo(userInfo);
+                                        break;
+                                    }
+                                }
+                            }
+
+                            mMsgListAdapter.updateMemberInfoList(userInfoList);
                         } else {
                             onError(new Throwable(new StringBuilder("Api fail status = ")
                                     .append(responseInfo.getStatus()).append(" , message = ")
@@ -337,6 +355,10 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
                     }
                     break;
                     case 2: {
+                        RoomInfo roomInfo = mGson.fromJson(msgInfo.getMessage(), RoomInfo.class);
+                        mRoomId = roomInfo.getRoomId();
+
+                        refreshMemberList(roomInfo);
                         Log.d(Constants.TAG, "Join Room...");
                     }
                     break;
