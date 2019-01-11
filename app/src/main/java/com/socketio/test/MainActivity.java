@@ -160,7 +160,7 @@ public class MainActivity extends AppCompatActivity implements MessageListAdapte
         mRvMemberList.setAdapter(mMemberListAdapter);
 
         // Init socket io commit
-        options.host("https://192.168.100.2:8081")
+        options.host(Constants.SOCKET_SERVER_URL)
                 .isForceNew(true)
                 .reconnection(false)
                 .query("auth_token=" + mUserInfo.getUserId());
