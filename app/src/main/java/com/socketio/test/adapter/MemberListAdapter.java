@@ -34,9 +34,23 @@ public class MemberListAdapter extends RecyclerView.Adapter<MemberListAdapter.Me
         this.mMemberInfoList = new ArrayList<>();
     }
 
-    public void updateMemberInfos(List<UserInfo> memberInfos) {
-        mMemberInfoList.clear();
-        mMemberInfoList.addAll(memberInfos);
+    public void addMemberInfo(UserInfo... userInfos) {
+        for(UserInfo userInfo : userInfos) {
+            if(mMemberInfoList.contains(userInfo)) {
+                continue;
+            }
+            mMemberInfoList.add(userInfo);
+        }
+        notifyDataSetChanged();
+    }
+
+    public void removeMemberInfo(UserInfo... userInfos) {
+        for (UserInfo userInfo : userInfos) {
+            if (!mMemberInfoList.contains(userInfo)) {
+                continue;
+            }
+            mMemberInfoList.remove(userInfo);
+        }
         notifyDataSetChanged();
     }
 
