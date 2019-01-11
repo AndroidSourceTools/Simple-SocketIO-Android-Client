@@ -1,8 +1,10 @@
 package com.socketio.test.adapter;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.v7.widget.RecyclerView;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,9 +17,8 @@ import com.socketio.test.model.UserInfo;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -28,7 +29,7 @@ import static com.socketio.test.adapter.MessageListAdapter.MESSAGE_FROM_CONSTANT
 
 public class MessageListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    public interface IListStatus {
+    public interface IListStatusListener {
         void onItemAdded();
     }
 
@@ -36,32 +37,38 @@ public class MessageListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         FROM_MY_MESSAGE, FROM_THEIR_MESSAGE, EVENT_MESSAGE
     }
 
-    private final Context mCtx;
-    private IListStatus mListener;
+    private IListStatusListener mListener;
     private final LayoutInflater mInflator;
     private final ArrayList<MessageInfo> mMsgInfoList;
-    private HashMap<String, UserInfo> mRoomUserInfoMap;
+    private HashMap<String, UserInfo> mIdInfoMap;
     private final String mUserId;
 
-    public MessageListAdapter(Context ctx, String userId, IListStatus listener) {
-        this.mCtx = ctx;
+    public MessageListAdapter(Context ctx, String userId, IListStatusListener listener) {
         this.mListener = listener;
         this.mUserId = userId;
         this.mInflator = LayoutInflater.from(ctx);
         this.mMsgInfoList = new ArrayList<>();
-        this.mRoomUserInfoMap = new HashMap<>();
+        this.mIdInfoMap = new HashMap<>();
     }
 
-    public void updateRoomUserInfoMap(HashMap<String, UserInfo> roomUserInfoMap) {
-        mRoomUserInfoMap = roomUserInfoMap;
+    public void updateMemberInfoList(List<UserInfo> memberInfoList) {
+        mIdInfoMap.clear();
+
+        for (UserInfo userInfo : memberInfoList) {
+            mIdInfoMap.put(userInfo.getUserId(), userInfo);
+        }
+        notifyDataSetChanged();
     }
 
     public void addMessageInfos(MessageInfo... msgInfos) {
         int changeFrom = getItemCount();
 
         mMsgInfoList.addAll(Arrays.asList(msgInfos));
-        notifyItemRangeInserted(changeFrom, getItemCount());
-        mListener.onItemAdded();
+        notifyItemRangeInserted(changeFrom, msgInfos.length);
+
+        if (mListener != null) {
+            mListener.onItemAdded();
+        }
     }
 
     @Override
@@ -70,7 +77,7 @@ public class MessageListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         int eventResponseType = msgInfo.getEventResponseType();
         int messageType = msgInfo.getMessageType();
 
-        if(eventResponseType != -1) {
+        if (eventResponseType != -1) {
             return EVENT_MESSAGE.ordinal();
         } else {
             return this.mUserId.equals(msgInfo.getUserId()) ? FROM_MY_MESSAGE.ordinal() : FROM_THEIR_MESSAGE.ordinal();
@@ -81,11 +88,11 @@ public class MessageListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int viewType) {
         if (viewType == FROM_MY_MESSAGE.ordinal()) {
-            return new MyMessageItemViewHolder(mInflator.inflate(R.layout.my_message, viewGroup, false));
+            return new MyMessageItemViewHolder(mInflator.inflate(R.layout.view_my_message, viewGroup, false));
         } else if (viewType == FROM_THEIR_MESSAGE.ordinal()) {
-            return new TheirMessageItemViewHolder(mInflator.inflate(R.layout.their_message, viewGroup, false));
+            return new TheirMessageItemViewHolder(mInflator.inflate(R.layout.view_their_message, viewGroup, false));
         } else {
-            return new EventMessageItemViewHolder(mInflator.inflate(R.layout.event_message, viewGroup, false));
+            return new EventMessageItemViewHolder(mInflator.inflate(R.layout.view_event_message, viewGroup, false));
         }
     }
 
@@ -94,13 +101,13 @@ public class MessageListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         MessageInfo msgInfo = mMsgInfoList.get(i);
         int viewType = messageItemViewHolder.getItemViewType();
 
-        if(viewType == FROM_MY_MESSAGE.ordinal()) {
+        if (viewType == FROM_MY_MESSAGE.ordinal()) {
             MyMessageItemViewHolder myMsgItemHolder = (MyMessageItemViewHolder) messageItemViewHolder;
 
             myMsgItemHolder.mMyMsgBody.setText(msgInfo.getMessage());
-        } else if (viewType == FROM_THEIR_MESSAGE.ordinal())  {
+        } else if (viewType == FROM_THEIR_MESSAGE.ordinal()) {
             TheirMessageItemViewHolder theirMsgItemHolder = (TheirMessageItemViewHolder) messageItemViewHolder;
-            String theirName = (mRoomUserInfoMap.containsKey(msgInfo.getUserId())) ? mRoomUserInfoMap.get(msgInfo.getUserId()).getUserName() : null;
+            String theirName = (mIdInfoMap.containsKey(msgInfo.getUserId())) ? mIdInfoMap.get(msgInfo.getUserId()).getUserName() : null;
 
             theirMsgItemHolder.mTheirName.setText(theirName);
             theirMsgItemHolder.mTheirMsgBody.setText(msgInfo.getMessage());

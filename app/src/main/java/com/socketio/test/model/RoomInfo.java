@@ -12,10 +12,12 @@ public class RoomInfo {
     private int mRoomType;
     @SerializedName("unread_count")
     private int mUnReadCount;
-    @SerializedName("user_info_list")
-    private ArrayList<UserInfo> mUserInfoList;
-    @SerializedName("message_info_list")
-    private ArrayList<MessageInfo> mMessageInfoList;
+    @SerializedName("user_ids")
+    private ArrayList<String> mUserIdList;
+    @SerializedName("last_message")
+    private String mLastMessage;
+    @SerializedName("last_message_timestamp")
+    private long mLastMessageTimestamp;
 
     public String getRoomId() {
         return mRoomId;
@@ -25,20 +27,12 @@ public class RoomInfo {
         this.mRoomId = mRoomId;
     }
 
-    public ArrayList<UserInfo> getUserInfoList() {
-        return mUserInfoList;
+    public ArrayList<String> getUserIdList() {
+        return mUserIdList;
     }
 
-    public void setUserInfoList(ArrayList<UserInfo> mUserInfo) {
-        this.mUserInfoList = mUserInfo;
-    }
-
-    public ArrayList<MessageInfo> getMessageInfoList() {
-        return mMessageInfoList;
-    }
-
-    public void setMessageInfoList(ArrayList<MessageInfo> mMessageInfo) {
-        this.mMessageInfoList = mMessageInfo;
+    public void setUserIdList(ArrayList<String> userIdList) {
+        this.mUserIdList = userIdList;
     }
 
     public int getRoomType() {
@@ -47,5 +41,29 @@ public class RoomInfo {
 
     public void setRoomType(int mRoomType) {
         this.mRoomType = mRoomType;
+    }
+
+    public String getLastMessage() {
+        return mLastMessage;
+    }
+
+    public void setLastMessage(String mLastMessage) {
+        this.mLastMessage = mLastMessage;
+    }
+
+    public long getLastMessageTimestamp() {
+        return mLastMessageTimestamp;
+    }
+
+    public void setLastMessageTimestamp(long mLastMessageTime) {
+        this.mLastMessageTimestamp = mLastMessageTime;
+    }
+
+    public int getUnReadCount() {
+        return mUnReadCount;
+    }
+
+    public void setUnReadCount(int mUnReadCount) {
+        this.mUnReadCount = mUnReadCount;
     }
 }
